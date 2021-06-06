@@ -1,0 +1,24 @@
+language: generic 
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t koebelesoft/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true koebelesoft/react-test npm test
+
+after_success:
+  - docker build -t koebelesoft/multi-client ./client
+  - docker build -t koebelesoft/multi-nginx ./nginx
+  - docker build -t koebelesoft/multi-server ./server
+  - docker build -t koebelesoft/multi-worker ./worker
+  # Login to Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push this images to docker
+  - docker push koebelesoft/multi-client
+  - docker push koebelesoft/multi-nginx
+  - docker push koebelesoft/multi-server
+  - docker push koebelesoft/multi-worker
+
